@@ -139,9 +139,10 @@ select_theme() {
 }
 
 create_theme() {
+    local theme_dir="/usr/share/sddm/themes/sddm-astronaut-theme"
     echo -e "${HEADER}[>] Running theme creation wizard...${RESET}"
-    sudo chmod +x create_theme.sh
-    sudo bash ./create_theme.sh
+    sudo chmod +x $theme_dir/create_theme.sh
+    sudo bash $theme_dir/create_theme.sh
 }
 
 preview_themes() {
