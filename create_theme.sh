@@ -12,9 +12,9 @@ magenta='\033[0;35m'
 reset='\033[0m'
 
 # Directories (adjust if needed)
-THEMES_DIR="./Themes"
-BACKGROUNDS_DIR="./Backgrounds"
-FONTS_DIR="./Fonts"
+THEMES_DIR="/usr/share/sddm/themes/sddm-astronaut-theme/Themes"
+BACKGROUNDS_DIR="/usr/share/sddm/themes/sddm-astronaut-theme/Backgrounds"
+FONTS_DIR="/usr/share/sddm/themes/sddm-astronaut-theme/Fonts"
 DEFAULT_WALLPAPER="$BACKGROUNDS_DIR/default.png"
 DEFAULT_FONT="$FONTS_DIR/ESPACION.ttf"
 
