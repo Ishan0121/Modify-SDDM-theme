@@ -77,7 +77,8 @@ If you'd prefer to set things up manually, follow these steps:
 ### 2. Clone This Repository
 
 ```bash
-sudo git clone -b master --depth 1 https://github.com/Ishan0121/Modify-SDDM-theme.git /usr/share/sddm/themes/sddm-astronaut-theme
+sudo git clone -b main --depth 1 https://github.com/Ishan0121/Modify-SDDM-theme.git /usr/share/sddm/themes/sddm-astronaut-theme
+
 ```
 
 ### 3. Copy Fonts
