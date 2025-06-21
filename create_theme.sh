@@ -114,8 +114,6 @@ if [[ "$USE_CUSTOM_FONT" == "y" ]]; then
         fi
     done
 else
-    FONT_NAME=$(basename "$DEFAULT_FONT")
-    sudo cp "$DEFAULT_FONT" "$FONTS_DIR/$FONT_NAME"
     echo -e "${green}[+] Default font used.${reset}"
 fi
 
@@ -127,7 +125,11 @@ read LAYOUT_CHOICE
 
 CONF_FILE="$THEMES_DIR/${THEME_NAME}.conf"
 WALL_LINE="Background=\"Backgrounds/${THEME_NAME}.${WALL_EXT}\""
-FONT_LINE="Font=\"Fonts/${FONT_NAME}\""
+
+if [[ -n "$FONT_NAME" ]]; then
+    FONT_LINE="Font=\"Fonts/${FONT_NAME}\""
+fi
+
 
 if [[ "$LAYOUT_CHOICE" == "1" ]]; then
     echo -e "${cyan}[+] Available Preset Themes:${reset}"
@@ -166,7 +168,7 @@ else
     sudo touch "$CONF_FILE"
     echo "# Define your theme layout here" | sudo tee "$CONF_FILE" >/dev/null
     echo "$WALL_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
-    echo "$FONT_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
+    # echo "$FONT_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
     [[ -n "$BACKGROUND_PLACEHOLDER_LINE" ]] && echo "$BACKGROUND_PLACEHOLDER_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
     echo -e "${cyan}[+] Template created. You can now edit: $CONF_FILE${reset}"
 fi

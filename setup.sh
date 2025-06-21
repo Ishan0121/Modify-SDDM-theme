@@ -49,24 +49,47 @@ install_dependencies() {
 
 git_clone() {
     echo -e "${HEADER}[>] Cloning repository...${RESET}"
-    if [ -d "$CLONE_PATH/sddm-astronaut-theme" ]; then
-        sudo mv "$CLONE_PATH/sddm-astronaut-theme" "$CLONE_PATH/sddm-astronaut-theme_$DATE"
-        echo -e "${WARNING}[!] Backup of existing repo saved as sddm-astronaut-theme_$DATE${RESET}"
+    local repo_dir="$CLONE_PATH/sddm-astronaut-theme"
+
+    if [ -d "$repo_dir" ]; then
+        echo -e "${WARNING}[!] Directory already exists at ${repo_dir}${RESET}"
+        echo -ne "${INPUT}[?] Remove existing directory and re-clone? (y/n): ${RESET}"
+        read -r confirm
+        if [[ "$confirm" =~ ^[Yy]$ ]]; then
+            sudo rm -rf "$repo_dir"
+            echo -e "${INFO}[~] Removed existing directory.${RESET}"
+        else
+            echo -e "${ERROR}[x] Clone aborted by user.${RESET}"
+            return
+        fi
     fi
+
     loading_bar "Cloning from GitHub..."
-    git clone -b master --depth 1 https://github.com/Ishan0121/sddm-astronaut-theme.git "$CLONE_PATH/sddm-astronaut-theme"
+    git clone -b master --depth 1 https://github.com/Ishan0121/sddm-astronaut-theme.git "$repo_dir"
 }
+
 
 copy_files() {
     echo -e "${HEADER}[>] Installing theme to SDDM directory...${RESET}"
-    if [ -d /usr/share/sddm/themes/sddm-astronaut-theme ]; then
-        sudo mv /usr/share/sddm/themes/sddm-astronaut-theme /usr/share/sddm/themes/sddm-astronaut-theme_$DATE
-        echo -e "${WARNING}[!] Existing theme backed up as sddm-astronaut-theme_$DATE${RESET}"
+    local dest_dir="/usr/share/sddm/themes/sddm-astronaut-theme"
+
+    if [ -d "$dest_dir" ]; then
+        echo -e "${WARNING}[!] Existing theme directory found at ${dest_dir}${RESET}"
+        echo -ne "${INPUT}[?] Remove existing theme and overwrite? (y/n): ${RESET}"
+        read -r confirm
+        if [[ "$confirm" =~ ^[Yy]$ ]]; then
+            sudo rm -rf "$dest_dir"
+            echo -e "${INFO}[~] Removed existing theme directory.${RESET}"
+        else
+            echo -e "${ERROR}[x] Theme copy aborted by user.${RESET}"
+            return
+        fi
     fi
+
     loading_bar "Copying theme files..."
-    sudo mkdir -p /usr/share/sddm/themes/sddm-astronaut-theme
-    sudo cp -r "$CLONE_PATH/sddm-astronaut-theme/"* /usr/share/sddm/themes/sddm-astronaut-theme
-    sudo cp -r /usr/share/sddm/themes/sddm-astronaut-theme/Fonts/* /usr/share/fonts/
+    sudo mkdir -p "$dest_dir"
+    sudo cp -r "$CLONE_PATH/sddm-astronaut-theme/"* "$dest_dir"
+    sudo cp -r "$dest_dir/Fonts/"* /usr/share/fonts/
     echo -e "${SUCCESS}[✓] Theme files copied.${RESET}"
 
     echo "[Theme]
@@ -75,6 +98,7 @@ Current=sddm-astronaut-theme" | sudo tee /etc/sddm.conf > /dev/null
     echo "[General]
 InputMethod=qtvirtualkeyboard" | sudo tee /etc/sddm.conf.d/virtualkbd.conf > /dev/null
 }
+
 
 select_theme() {
     META="/usr/share/sddm/themes/sddm-astronaut-theme/metadata.desktop"
