@@ -57,7 +57,7 @@ This fork keeps all features from the original and adds:
 To install and launch the theme installer directly:
 
 ```bash
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/Ishan0121/sddm-astronaut-theme/main/setup.sh)"
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/Ishan0121/Modify-SDDM-theme/main/setup.sh)"
 ````
 ---
 
