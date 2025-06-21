@@ -65,7 +65,7 @@ git_clone() {
     fi
 
     loading_bar "Cloning from GitHub..."
-    git clone -b main --depth 1 https://github.com/Ishan0121/sddm-astronaut-theme.git "$repo_dir"
+    sudo git clone --depth 1 https://github.com/Ishan0121/Modify-SDDM-theme.git "$repo_dir"
 }
 
 
