@@ -60,34 +60,39 @@ read USE_CUSTOM_WALL
 
 if [[ "$USE_CUSTOM_WALL" == "y" ]]; then
     while true; do
-        echo -ne "${yellow}[>] Enter full path to your wallpaper: ${reset}"
-        read WALL_PATH
+        echo -ne "${INPUT}[>] Enter full path to your wallpaper: ${RESET}"
+        read -r WALL_PATH
+
         if [[ -f "$WALL_PATH" ]] && is_valid_background "$WALL_PATH"; then
             WALL_EXT="${WALL_PATH##*.}"
-            sudo cp "$WALL_PATH" "$BACKGROUNDS_DIR/${THEME_NAME}.${WALL_EXT}"
-            echo -e "${green}[+] Wallpaper copied.${reset}"
+            DEST_WALL="$BACKGROUNDS_DIR/${THEME_NAME}.${WALL_EXT}"
+            sudo cp "$WALL_PATH" "$DEST_WALL"
+            echo -e "${SUCCESS}[✓] Wallpaper copied to: $DEST_WALL${RESET}"
 
             if [[ "$WALL_EXT" =~ ^(mp4|webm|mov)$ ]]; then
-                echo -e "${magenta}[•] Your background is a video. A static placeholder is required.${reset}"
+                echo -e "${INFO}[~] Detected a video background. A static placeholder is required.${RESET}"
+
                 while true; do
-                    echo -ne "${yellow}[>] Enter full path to a placeholder image (jpg/png/gif): ${reset}"
-                    read PLACEHOLDER_PATH
+                    echo -ne "${INPUT}[>] Enter full path to a placeholder image (jpg/png/gif): ${RESET}"
+                    read -r PLACEHOLDER_PATH
 
                     PLACEHOLDER_EXT="${PLACEHOLDER_PATH##*.}"
+                    PLACEHOLDER_NAME="${THEME_NAME}_placeholder.${PLACEHOLDER_EXT}"
+                    DEST_PLACEHOLDER="$BACKGROUNDS_DIR/$PLACEHOLDER_NAME"
+
                     if [[ -f "$PLACEHOLDER_PATH" ]] && [[ "$PLACEHOLDER_EXT" =~ ^(jpg|jpeg|png|gif)$ ]]; then
-                        PLACEHOLDER_NAME="${THEME_NAME}_placeholder.${PLACEHOLDER_EXT}"
-                        sudo cp "$PLACEHOLDER_PATH" "$BACKGROUNDS_DIR/$PLACEHOLDER_NAME"
+                        sudo cp "$PLACEHOLDER_PATH" "$DEST_PLACEHOLDER"
                         BACKGROUND_PLACEHOLDER_LINE="BackgroundPlaceholder=\"Backgrounds/$PLACEHOLDER_NAME\""
-                        echo -e "${green}[+] Placeholder added.${reset}"
+                        echo -e "${SUCCESS}[✓] Placeholder added as: $PLACEHOLDER_NAME${RESET}"
                         break
                     else
-                        echo -e "${red}[!] Invalid file or format. Must be jpg/png/gif.${reset}"
+                        echo -e "${ERROR}[!] Invalid file or unsupported format. Please use jpg, png, or gif.${RESET}"
                     fi
                 done
             fi
             break
         else
-            echo -e "${red}[!] File not found or unsupported format.${reset}"
+            echo -e "${ERROR}[!] Wallpaper not found or unsupported format.${RESET}"
         fi
     done
 else
