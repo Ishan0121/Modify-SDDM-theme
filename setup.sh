@@ -191,7 +191,7 @@ while true; do
 
     case $choice in
         1) install_dependencies; git_clone; copy_files; select_theme; enable_sddm; exit ;;
-        1) install_dependencies; git_clone; copy_files; exit ;;
+        2) install_dependencies; git_clone; copy_files; exit ;;
         3) install_dependencies; exit ;;
         4) preview_themes; exit ;;
         5) select_theme; exit ;;
