@@ -84,7 +84,7 @@ select_theme() {
     echo -e "${HEADER}[>] Scanning available themes...${RESET}"
     mapfile -t themes < <(find "$DIR" -maxdepth 1 -name '*.conf' -exec basename {} .conf \;)
     if [ "${#themes[@]}" -eq 0 ]; then
-        echo -e "${ERROR}[!] No .conf themes found in ${DIR}.${RESET}"
+        echo -e "${ERROR}[!] No themes found in ${DIR}.${RESET}"
         exit 1
     fi
 
@@ -176,7 +176,7 @@ while true; do
     echo -e "${HEADER}│         SDDM Astronaut Theme Installer       │${RESET}"
     echo -e "${HEADER}└──────────────────────────────────────────────┘${RESET}"
     echo -e "${INFO} 1.${RESET} ${PROMPT}Full setup (clone → install → select → enable)${RESET}"
-    echo -e "${INFO} 2.${RESET} ${PROMPT}Full installation (clone → install)${RESET}"
+    echo -e "${INFO} 2.${RESET} ${PROMPT}Full installation, (clone → install)${RESET}"
     echo -e "${INFO} 3.${RESET} ${PROMPT}Install dependencies${RESET}"
     echo -e "${INFO} 4.${RESET} ${PROMPT}Preview a theme before applying${RESET}"
     echo -e "${INFO} 5.${RESET} ${PROMPT}Select a theme${RESET}"
@@ -184,6 +184,7 @@ while true; do
     echo -e "${INFO} 7.${RESET} ${PROMPT}Preview the current theme${RESET}"
     echo -e "${INFO} 8.${RESET} ${PROMPT}Enable SDDM${RESET}"
     echo -e "${INFO} 0.${RESET} ${PROMPT}Exit${RESET}"
+    echo -e "${INFO} *** Full installation or Full setup recommended for first time user.${RESET}"
     echo -ne "${INPUT}[?] Your choice: ${RESET}"
 
     read -r choice
