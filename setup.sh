@@ -17,7 +17,7 @@ RESET='\033[0m'
 
 DATE=$(date +%s)
 CLONE_PATH="$HOME"
-
+THEME_DIR="/usr/share/sddm/themes/sddm-astronaut-theme"
 # 🌀 Loading bar function
 loading_bar() {
     msg="$1"
@@ -72,7 +72,7 @@ git_clone() {
 
 copy_files() {
     echo -e "${HEADER}[>] Installing theme to SDDM directory...${RESET}"
-    local dest_dir="/usr/share/sddm/themes/sddm-astronaut-theme"
+    local dest_dir="${THEME_DIR}"
 
     if [ -d "$dest_dir" ]; then
         echo -e "${WARNING}[!] Existing theme directory found at ${dest_dir}${RESET}"
@@ -102,9 +102,9 @@ InputMethod=qtvirtualkeyboard" | sudo tee /etc/sddm.conf.d/virtualkbd.conf > /de
 
 
 select_theme() {
-    META="/usr/share/sddm/themes/sddm-astronaut-theme/metadata.desktop"
+    META="${THEME_DIR}/metadata.desktop"
     PREFIX="ConfigFile=Themes/"
-    DIR="/usr/share/sddm/themes/sddm-astronaut-theme/Themes"
+    DIR="${THEME_DIR}/Themes"
 
     echo -e "${HEADER}[>] Scanning available themes...${RESET}"
     mapfile -t themes < <(find "$DIR" -maxdepth 1 -name '*.conf' -exec basename {} .conf \;)
@@ -140,14 +140,14 @@ select_theme() {
 }
 
 create_theme() {
-    local theme_dir="/usr/share/sddm/themes/sddm-astronaut-theme"
+    local theme_dir="${THEME_DIR}"
     echo -e "${HEADER}[>] Running theme creation wizard...${RESET}"
     sudo chmod +x $theme_dir/create_theme.sh
     sudo bash $theme_dir/create_theme.sh
 }
 
 preview_themes() {
-    local theme_dir="/usr/share/sddm/themes/sddm-astronaut-theme"
+    local theme_dir="${THEME_DIR}"
     local metadata_file="$theme_dir/metadata.desktop"
     local config_prefix="ConfigFile=Themes/"
     local original_config
@@ -222,7 +222,7 @@ while true; do
         4) preview_themes; exit ;;
         5) select_theme; exit ;;
         6) create_theme; exit ;;
-        7) sddm-greeter-qt6 --test-mode --theme /usr/share/sddm/themes/sddm-astronaut-theme/; exit ;;
+        7) sddm-greeter-qt6 --test-mode --theme ${THEME_DIR}/; exit ;;
         8) enable_sddm; exit ;;
         0) echo -e "${INFO}Exiting...${RESET}"; exit ;;
         *) echo -e "${ERROR}[!] Invalid option.${RESET}" ;;

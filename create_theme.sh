@@ -1,181 +1,254 @@
 #!/bin/bash
 
-# 🌟 Cappuccino Color Scheme
-bold=$(tput bold)
-normal=$(tput sgr0)
+# 🎨 Cappuccino Colors
+HEADER='\033[1;38;5;221m'
+INFO='\033[1;38;5;152m'
+PROMPT='\033[0;38;5;117m'
+SUCCESS='\033[0;38;5;114m'
+WARNING='\033[0;38;5;215m'
+ERROR='\033[0;38;5;203m'
+RESET='\033[0m'
 
-green='\033[0;32m'
-yellow='\033[0;33m'
-red='\033[0;31m'
-cyan='\033[0;36m'
-magenta='\033[0;35m'
-reset='\033[0m'
+THEME_DIR="/usr/share/sddm/themes/sddm-astronaut-theme"
+THEMES_DIR="$THEME_DIR/Themes"
+BACKGROUNDS_DIR="$THEME_DIR/Backgrounds"
+FONTS_DIR="$THEME_DIR/Fonts"
+TEMPLATE_CONF="$THEME_DIR/template.conf"
 
-# Directories (adjust if needed)
-THEMES_DIR="/usr/share/sddm/themes/sddm-astronaut-theme/Themes"
-BACKGROUNDS_DIR="/usr/share/sddm/themes/sddm-astronaut-theme/Backgrounds"
-FONTS_DIR="/usr/share/sddm/themes/sddm-astronaut-theme/Fonts"
-DEFAULT_WALLPAPER="$BACKGROUNDS_DIR/default.png"
-DEFAULT_FONT="$FONTS_DIR/ESPACION.ttf"
-
-# Validate theme name
-validate_theme_name() {
-    [[ "$1" =~ ^[a-zA-Z0-9_]+$ ]]
-}
-
-# Validate background file type
-is_valid_background() {
-    local ext="${1##*.}"
-    case "${ext,,}" in jpg|jpeg|png|gif|mp4|webm|mov) return 0 ;; *) return 1 ;; esac
-}
-
-# Validate font file type
-is_valid_font() {
-    local ext="${1##*.}"
-    case "${ext,,}" in ttf|otf) return 0 ;; *) return 1 ;; esac
-}
-
-echo -e "${cyan}${bold}🧵 Theme Creator — sddm-astronaut-theme${reset}"
-
-# Prompt for theme name
+# --- Theme Name ---
 while true; do
-    echo -ne "${yellow}[?] Enter a new theme name (letters, numbers, underscores only): ${reset}"
-    read THEME_NAME
-
-    if ! validate_theme_name "$THEME_NAME"; then
-        echo -e "${red}[!] Invalid name. Use only letters, numbers, and underscores (_).${reset}"
-        continue
-    fi
-
-    if [[ -e "$THEMES_DIR/$THEME_NAME.conf" ]]; then
-        echo -e "${red}[!] Theme \"$THEME_NAME\" already exists. Choose another name.${reset}"
-        continue
-    fi
+    echo -ne "${PROMPT}[>] Enter a name for your new theme (letters, numbers, _ only): ${RESET}"
+    read -r THEME_NAME
+    [[ "$THEME_NAME" =~ ^[a-zA-Z0-9_]+$ ]] || { echo -e "${ERROR}[!] Invalid name.${RESET}"; continue; }
+    [[ ! -e "$THEMES_DIR/$THEME_NAME.conf" ]] || { echo -e "${ERROR}[!] Theme already exists.${RESET}"; continue; }
     break
 done
 
-# --- Wallpaper ---
-echo -ne "${yellow}[?] Use your own wallpaper? (y/n): ${reset}"
-read USE_CUSTOM_WALL
+CONF_FILE="$THEMES_DIR/${THEME_NAME}.conf"
 
+# --- Wallpaper ---
+echo -ne "${PROMPT}[?] Do you want to use your own wallpaper? (y/n): ${RESET}"
+read -r USE_CUSTOM_WALL
 if [[ "$USE_CUSTOM_WALL" == "y" ]]; then
     while true; do
-        echo -ne "${INPUT}[>] Enter full path to your wallpaper: ${RESET}"
-        read -r WALL_PATH
-
-        if [[ -f "$WALL_PATH" ]] && is_valid_background "$WALL_PATH"; then
+        echo -ne "${PROMPT}[>] Enter full path to your wallpaper: ${RESET}"
+        read WALL_PATH
+        if [[ -f "$WALL_PATH" ]]; then
             WALL_EXT="${WALL_PATH##*.}"
-            DEST_WALL="$BACKGROUNDS_DIR/${THEME_NAME}.${WALL_EXT}"
-            sudo cp "$WALL_PATH" "$DEST_WALL"
-            echo -e "${SUCCESS}[✓] Wallpaper copied to: $DEST_WALL${RESET}"
+            WALL_FILE="${THEME_NAME}.${WALL_EXT}"
+            sudo cp "$WALL_PATH" "$BACKGROUNDS_DIR/$WALL_FILE"
+            echo -e "${SUCCESS}[✓] Wallpaper copied.${RESET}"
 
             if [[ "$WALL_EXT" =~ ^(mp4|webm|mov)$ ]]; then
-                echo -e "${INFO}[~] Detected a video background. A static placeholder is required.${RESET}"
-
+                echo -e "${WARNING}[~] Video wallpaper detected. Placeholder required.${RESET}"
                 while true; do
-                    echo -ne "${INPUT}[>] Enter full path to a placeholder image (jpg/png/gif): ${RESET}"
-                    read -r PLACEHOLDER_PATH
-
+                    echo -ne "${PROMPT}[>] Path to placeholder image (png/jpg/gif): ${RESET}"
+                    read PLACEHOLDER_PATH
                     PLACEHOLDER_EXT="${PLACEHOLDER_PATH##*.}"
-                    PLACEHOLDER_NAME="${THEME_NAME}_placeholder.${PLACEHOLDER_EXT}"
-                    DEST_PLACEHOLDER="$BACKGROUNDS_DIR/$PLACEHOLDER_NAME"
-
-                    if [[ -f "$PLACEHOLDER_PATH" ]] && [[ "$PLACEHOLDER_EXT" =~ ^(jpg|jpeg|png|gif)$ ]]; then
-                        sudo cp "$PLACEHOLDER_PATH" "$DEST_PLACEHOLDER"
+                    if [[ -f "$PLACEHOLDER_PATH" && "$PLACEHOLDER_EXT" =~ ^(png|jpg|jpeg|gif)$ ]]; then
+                        PLACEHOLDER_NAME="${THEME_NAME}_placeholder.${PLACEHOLDER_EXT}"
+                        sudo cp "$PLACEHOLDER_PATH" "$BACKGROUNDS_DIR/$PLACEHOLDER_NAME"
                         BACKGROUND_PLACEHOLDER_LINE="BackgroundPlaceholder=\"Backgrounds/$PLACEHOLDER_NAME\""
-                        echo -e "${SUCCESS}[✓] Placeholder added as: $PLACEHOLDER_NAME${RESET}"
                         break
                     else
-                        echo -e "${ERROR}[!] Invalid file or unsupported format. Please use jpg, png, or gif.${RESET}"
+                        echo -e "${ERROR}[!] Invalid file or format.${RESET}"
                     fi
                 done
             fi
             break
         else
-            echo -e "${ERROR}[!] Wallpaper not found or unsupported format.${RESET}"
+            echo -e "${ERROR}[!] File not found.${RESET}"
         fi
     done
 else
-    WALL_EXT="${DEFAULT_WALLPAPER##*.}"
-    sudo cp "$DEFAULT_WALLPAPER" "$BACKGROUNDS_DIR/${THEME_NAME}.${WALL_EXT}"
-    echo -e "${green}[+] Default wallpaper applied.${reset}"
+    echo -e "${HEADER}[~] Choose a wallpaper from available ones:${RESET}"
+    mapfile -t wallpapers < <(find "$BACKGROUNDS_DIR" -maxdepth 1 -type f -exec basename {} \;)
+    for i in "${!wallpapers[@]}"; do
+        echo -e "${INFO}$((i+1)).${RESET} ${wallpapers[i]}"
+    done
+    while true; do
+        echo -ne "${PROMPT}[?] Enter wallpaper number: ${RESET}"
+        read -r WNUM
+        if [[ "$WNUM" =~ ^[0-9]+$ ]] && ((WNUM >= 1 && WNUM <= ${#wallpapers[@]})); then
+            WALL_FILE="${wallpapers[$((WNUM-1))]}"
+            WALL_EXT="${WALL_FILE##*.}"
+            break
+        else
+            echo -e "${ERROR}[!] Invalid selection.${RESET}"
+        fi
+    done
 fi
+
+WALL_LINE="Background=\"Backgrounds/$WALL_FILE\""
 
 # --- Font ---
-echo -ne "${yellow}[?] Use your own font? (y/n): ${reset}"
-read USE_CUSTOM_FONT
-
-if [[ "$USE_CUSTOM_FONT" == "y" ]]; then
-    while true; do
-        echo -ne "${yellow}[>] Enter full path to your font (.ttf/.otf): ${reset}"
-        read FONT_PATH
-        if [[ -f "$FONT_PATH" ]] && is_valid_font "$FONT_PATH"; then
-            FONT_NAME=$(basename "$FONT_PATH")
-            sudo cp "$FONT_PATH" "$FONTS_DIR/$FONT_NAME"
-            echo -e "${green}[+] Font copied.${reset}"
-            break
+echo -e "${HEADER}[~] Choose a font from available ones:${RESET}"
+mapfile -t fonts < <(find "$FONTS_DIR" -maxdepth 1 -type f \( -iname "*.ttf" -o -iname "*.otf" \) -exec basename {} \;)
+echo -e "${INFO}$((1)).${RESET} Open Sans"
+for i in "${!fonts[@]}"; do
+    echo -e "${INFO}$((i+2)).${RESET} ${fonts[i]}"
+done
+while true; do
+    echo -ne "${PROMPT}[?] Enter font number: ${RESET}"
+    read -r FNUM
+    if [[ "$FNUM" =~ ^[0-9]+$ ]] && ((FNUM >= 1 && FNUM <= ${#fonts[@]})); then
+        if [[ FNUM == 1 ]]; then
+            FONT_FILE="Open Sans"
         else
-            echo -e "${red}[!] File not found or unsupported format.${reset}"
+            FONT_FILE="${fonts[$((FNUM-1))]}"
+        fi
+        break
+    else
+        echo -e "${ERROR}[!] Invalid selection.${RESET}"
+    fi
+done
+
+FONT_LINE="Font=\"Fonts/$FONT_FILE\""
+
+# --- Layout Option ---
+echo -ne "${PROMPT}[?] Do you want to base your theme on a preset layout? (y/n): ${RESET}"
+read -r USE_PRESET
+
+if [[ "$USE_PRESET" == "y" ]]; then
+    echo -e "${HEADER}[~] Choose a preset layout to copy:${RESET}"
+    mapfile -t presets < <(find "$THEMES_DIR" -name "*.conf" -exec basename {} .conf \;)
+    for i in "${!presets[@]}"; do
+        echo -e "${INFO}$((i+1)).${RESET} ${presets[i]}"
+    done
+    while true; do
+        echo -ne "${PROMPT}[?] Enter preset number: ${RESET}"
+        read -r PNUM
+        if [[ "$PNUM" =~ ^[0-9]+$ ]] && ((PNUM >= 1 && PNUM <= ${#presets[@]})); then
+            PRESET_NAME="${presets[$((PNUM-1))]}"
+            sudo cp "$THEMES_DIR/${PRESET_NAME}.conf" "$CONF_FILE"
+            sudo sed -i "s|^Background=.*|$WALL_LINE|" "$CONF_FILE"
+            sudo sed -i "s|^Font=.*|$FONT_LINE|" "$CONF_FILE"
+            [[ -n "$BACKGROUND_PLACEHOLDER_LINE" ]] && \
+                sudo sed -i "s|^BackgroundPlaceholder=.*|$BACKGROUND_PLACEHOLDER_LINE|" "$CONF_FILE"
+            echo -e "${SUCCESS}[✓] Preset '$PRESET_NAME' copied and modified.${RESET}"
+            exit 0
+        else
+            echo -e "${ERROR}[!] Invalid selection.${RESET}"
         fi
     done
-else
-    echo -e "${green}[+] Default font used.${reset}"
 fi
 
-# --- Layout ---
-echo -e "${cyan}\n📐 Layout Source:${reset}"
-echo -e "${yellow}1) Use a preset theme\n2) Create your own .conf${reset}"
-echo -ne "${yellow}[?] Enter choice (1 or 2): ${reset}"
-read LAYOUT_CHOICE
+# --- Manual Layout ---
+echo -ne "${PROMPT}[?] Do you want guidance for layout creation? (y/n): ${RESET}"
+read -r GUIDE
 
-CONF_FILE="$THEMES_DIR/${THEME_NAME}.conf"
-WALL_LINE="Background=\"Backgrounds/${THEME_NAME}.${WALL_EXT}\""
+echo -e "${HEADER}[~] Generating ${CONF_FILE}...${RESET}"
+echo "[General]" | sudo tee "$CONF_FILE" >/dev/null
+echo "$WALL_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
+echo "$FONT_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
+[[ -n "$BACKGROUND_PLACEHOLDER_LINE" ]] && echo "$BACKGROUND_PLACEHOLDER_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
 
-if [[ -n "$FONT_NAME" ]]; then
-    FONT_LINE="Font=\"Fonts/${FONT_NAME}\""
-fi
+if [[ "$GUIDE" == "y" ]]; then
+    echo -e "${INFO}[~] Guided config begins. Hit [Enter] to skip any field.${RESET}"
 
+    # Suggestions for known properties
+    declare -A SUGGESTIONS=(
+        ["ScreenWidth"]="e.g. 1920"
+        ["ScreenPadding"]="e.g. 100"
+        ["FontSize"]="e.g. 20"
+        ["KeyboardSize"]="Default: 0.4"
+        ["RoundCorners"]="true / false"
+        ["Locale"]="e.g. en_US / ja_JP"
+        ["HourFormat"]="12 / 24"
+        ["DateFormat"]="dd/MM/yyyy / yyyy-MM-dd"
+        ["HeaderText"]="e.g. Welcome!"
+        ["BackgroundSpeed"]="1 / 2 / 3"
+        ["PauseBackground"]="true / false"
+        ["DimBackground"]="true / false"
+        ["CropBackground"]="true / false"
+        ["BackgroundHorizontalAlignment"]="left / center / right"
+        ["BackgroundVerticalAlignment"]="top / center / bottom"
+        ["HeaderTextColor"]="#RRGGBB"
+        ["TimeTextColor"]="#RRGGBB"
+        ["FormBackgroundColor"]="#RRGGBB88"
+        ["DimBackgroundColor"]="#RRGGBB88"
+        ["LoginFieldBackgroundColor"]="#RRGGBB"
+        ["LoginFieldTextColor"]="#RRGGBB"
+        ["UserIconColor"]="#RRGGBB"
+        ["PlaceholderTextColor"]="#RRGGBB"
+        ["LoginButtonTextColor"]="#RRGGBB"
+        ["SystemButtonsIconsColor"]="#RRGGBB"
+        ["VirtualKeyboardButtonTextColor"]="#RRGGBB"
+        ["DropdownTextColor"]="#RRGGBB"
+        ["DropdownBackgroundColor"]="#RRGGBB"
+        ["HighlightTextColor"]="#RRGGBB"
+        ["HighlightBorderColor"]="#RRGGBB"
+        ["HoverUserIconColor"]="#RRGGBB"
+        ["HoverSystemButtonsIconsColor"]="#RRGGBB"
+        ["HoverVirtualKeyboardButtonTextColor"]="#RRGGBB"
+        ["PartialBlur"]="true / false"
+        ["FullBlur"]="true / false"
+        ["BlurMax"]="e.g. 5, 10, 20"
+        ["Blur"]="e.g. 2, 3, 5"
+        ["HaveFormBackground"]="true / false"
+        ["FormPosition"]="left / center / right"
+        ["VirtualKeyboardPosition"]="top / bottom"
+        ["HideVirtualKeyboard"]="true / false"
+        ["HideLoginButton"]="true / false"
+        ["ForceLastUser"]="true / false"
+        ["PasswordFocus"]="true / false"
+        ["HideCompletePassword"]="true / false"
+        ["AllowEmptyPassword"]="true / false"
+        ["AllowUppercaseLettersInUsernames"]="true / false"
+        ["BypassSystemButtonsChecks"]="true / false"
+        ["RightToLeftLayout"]="true / false"
+        ["TranslatePlaceholderUsername"]="e.g. Username"
+        ["TranslateLogin"]="e.g. Login"
+        ["TranslateCapslockWarning"]="e.g. Caps Lock is on"
+        ["TranslateHibernate"]="e.g. Hibernate"
+        ["TranslateShutdown"]="e.g. Shutdown"
+        ["TranslateVirtualKeyboardButtonOn"]="e.g. Show Keyboard"
+        ["TranslateVirtualKeyboardButtonOff"]="e.g. Hide Keyboard"
+    )
 
-if [[ "$LAYOUT_CHOICE" == "1" ]]; then
-    echo -e "${cyan}[+] Available Preset Themes:${reset}"
-    mapfile -t PRESETS < <(ls "$THEMES_DIR"/*.conf | xargs -n 1 basename | sed 's/\.conf$//')
+    # Start fresh
+    sudo tee "$CONF_FILE" <<< "" >/dev/null
+    echo "# Generated using guided layout wizard" | sudo tee "$CONF_FILE" >/dev/null
 
-    for i in "${!PRESETS[@]}"; do
-        echo -e "  ${INFO}$((i + 1)).${RESET} ${PROMPT}${PRESETS[i]}${RESET}"
-    done
+    exec 3< "$TEMPLATE_CONF"
+    while IFS= read -r line <&3 || [[ -n "$line" ]]; do
+        # Preserve comments, blank lines, and section headers
+        if [[ "$line" =~ ^[[:space:]]*$ || "$line" =~ ^#.*$ || "$line" =~ ^\[.*\]$ ]]; then
+            echo "$line" | sudo tee -a "$CONF_FILE" >/dev/null
+            continue
+        fi
 
-    while true; do
-        echo -ne "${yellow}[?]Enter the number of the preset you want to use: ${reset}"
-        read -r preset_choice
+        key="${line%%=*}"
+        suggestion="${SUGGESTIONS[$key]}"
 
-        if [[ "$preset_choice" =~ ^[0-9]+$ ]] && (( preset_choice >= 1 && preset_choice <= ${#PRESETS[@]} )); then
-            PRESET="${PRESETS[preset_choice - 1]}"
-            CONF_FILE="$THEMES_DIR/${THEME_NAME}.conf"
-            sudo cp "$THEMES_DIR/${PRESET}.conf" "$CONF_FILE"
-            echo -e "${green}[+] Copied layout from: $PRESET${reset}"
+        echo -ne "${PROMPT}[>] $key"
+        [[ -n "$suggestion" ]] && echo -ne " (${suggestion})"
+        echo -ne " = ${RESET}"
+        read -r value
 
-            [[ -n "$WALL_LINE" ]] && sudo sed -i "s|^Background=.*|$WALL_LINE|" "$CONF_FILE" || echo "$WALL_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
-            [[ -n "$FONT_LINE" ]] && sudo sed -i "s|^Font=.*|$FONT_LINE|" "$CONF_FILE" || echo "$FONT_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
-
-            if [[ -n "$BACKGROUND_PLACEHOLDER_LINE" ]]; then
-                if grep -q "^BackgroundPlaceholder=" "$CONF_FILE"; then
-                    sudo sed -i "s|^BackgroundPlaceholder=.*|$BACKGROUND_PLACEHOLDER_LINE|" "$CONF_FILE"
-                else
-                    echo "$BACKGROUND_PLACEHOLDER_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
-                fi
-            fi
-            break
+        if [[ -n "$value" ]]; then
+            echo "$key=\"$value\"" | sudo tee -a "$CONF_FILE" >/dev/null
         else
-            echo -e "${red}[!] Invalid selection. Try again.${reset}"
+            # Write key with blank value if user skipped
+            echo "$key=" | sudo tee -a "$CONF_FILE" >/dev/null
         fi
     done
-else
-    sudo touch "$CONF_FILE"
-    echo "# Define your theme layout here" | sudo tee "$CONF_FILE" >/dev/null
-    echo "$WALL_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
-    # echo "$FONT_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
+    exec 3<&-
+
+    # Append required lines for functionality
+    [[ -n "$WALL_LINE" ]] && echo "$WALL_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
+    [[ -n "$FONT_LINE" ]] && echo "$FONT_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
     [[ -n "$BACKGROUND_PLACEHOLDER_LINE" ]] && echo "$BACKGROUND_PLACEHOLDER_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
-    echo -e "${cyan}[+] Template created. You can now edit: $CONF_FILE${reset}"
+
+
+    echo -e "${SUCCESS}[✓] Layout generated: $CONF_FILE${RESET}"
+else
+    echo -e "${INFO}[~] Creating empty config with minimal values.${RESET}"
+    echo "# You can tweak the layout manually later." | sudo tee "$CONF_FILE" >/dev/null
+    echo "$WALL_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
+    echo "$FONT_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
+    [[ -n "$BACKGROUND_PLACEHOLDER_LINE" ]] && echo "$BACKGROUND_PLACEHOLDER_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
 fi
 
-echo -e "\n${green}✅ Theme '${THEME_NAME}' created successfully!${reset}"
+
+echo -e "${SUCCESS}[✓] Theme '${THEME_NAME}' created successfully.${RESET}"
