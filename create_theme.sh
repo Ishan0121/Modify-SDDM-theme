@@ -94,6 +94,7 @@ while true; do
     if [[ "$FNUM" =~ ^[0-9]+$ ]] && ((FNUM >= 1 && FNUM <= ${#fonts[@]})); then
         if [[ FNUM == 1 ]]; then
             FONT_FILE="Open Sans"
+            break
         else
             FONT_FILE="${fonts[$((FNUM-1))]}"
         fi
@@ -103,7 +104,8 @@ while true; do
     fi
 done
 
-FONT_LINE="Font=\"Fonts/$FONT_FILE\""
+FONT_NAME="${FONT_FILE%%.*}"  # remove extension only
+FONT_LINE="Font=\"$FONT_NAME\""
 
 # --- Layout Option ---
 echo -ne "${PROMPT}[?] Do you want to base your theme on a preset layout? (y/n): ${RESET}"
@@ -122,7 +124,13 @@ if [[ "$USE_PRESET" == "y" ]]; then
             PRESET_NAME="${presets[$((PNUM-1))]}"
             sudo cp "$THEMES_DIR/${PRESET_NAME}.conf" "$CONF_FILE"
             sudo sed -i "s|^Background=.*|$WALL_LINE|" "$CONF_FILE"
-            sudo sed -i "s|^Font=.*|$FONT_LINE|" "$CONF_FILE"
+            # Font injection
+            if grep -q "^Font=" "$CONF_FILE"; then
+                sudo sed -i "s|^Font=.*|$FONT_LINE|" "$CONF_FILE"
+            else
+                echo "$FONT_LINE" | sudo tee -a "$CONF_FILE" >/dev/null
+            fi
+
             [[ -n "$BACKGROUND_PLACEHOLDER_LINE" ]] && \
                 sudo sed -i "s|^BackgroundPlaceholder=.*|$BACKGROUND_PLACEHOLDER_LINE|" "$CONF_FILE"
             echo -e "${SUCCESS}[✓] Preset '$PRESET_NAME' copied and modified.${RESET}"
