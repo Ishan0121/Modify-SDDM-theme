@@ -100,41 +100,43 @@ Current=sddm-astronaut-theme" | sudo tee /etc/sddm.conf > /dev/null
 InputMethod=qtvirtualkeyboard" | sudo tee /etc/sddm.conf.d/virtualkbd.conf > /dev/null
 }
 
-
 select_theme() {
-    META="${THEME_DIR}/metadata.desktop"
+    META="/usr/share/sddm/themes/sddm-astronaut-theme/metadata.desktop"
     PREFIX="ConfigFile=Themes/"
-    DIR="${THEME_DIR}/Themes"
+    DIR="/usr/share/sddm/themes/sddm-astronaut-theme/Themes"
 
     echo -e "${HEADER}[>] Scanning available themes...${RESET}"
-    mapfile -t themes < <(find "$DIR" -maxdepth 1 -name '*.conf' -exec basename {} .conf \;)
-    if [ "${#themes[@]}" -eq 0 ]; then
-        echo -e "${ERROR}[!] No themes found in ${DIR}.${RESET}"
+    mapfile -t all_themes < <(find "$DIR" -maxdepth 1 -name '*.conf' -exec basename {} .conf \;)
+
+    if [[ "${#all_themes[@]}" -eq 0 ]]; then
+        echo -e "${ERROR}[!] No .conf themes found in ${DIR}.${RESET}"
         exit 1
     fi
 
+    # List of known preset themes
     presets=(astronaut black_hole cyberpunk hyprland_kath jake_the_dog japanese_aesthetic pixel_sakura pixel_sakura_static post-apocalyptic_hacker purple_leaves)
-    preset_list=(); custom_list=()
-    for t in "${themes[@]}"; do
-        [[ " ${presets[*]} " == *" $t "* ]] && preset_list+=("$t") || custom_list+=("$t")
+
+    echo -e "\n${INFO}[i] ★ = Preset theme, ✎ = Custom user-created theme${RESET}"
+
+    # Show all themes with markers
+    for i in "${!all_themes[@]}"; do
+        theme="${all_themes[$i]}"
+        if [[ " ${presets[*]} " == *" $theme "* ]]; then
+            echo -e "${INFO}$((i + 1)).${RESET} ★ $theme"
+        else
+            echo -e "${INFO}$((i + 1)).${RESET} ✎ $theme"
+        fi
     done
 
-    echo -e "\n${INFO}Preset Themes:${RESET}"
-    for i in "${!preset_list[@]}"; do echo "  $((i+1)). ${preset_list[i]}"; done
-
-    offset=${#preset_list[@]}
-    echo -e "\n${INFO}Custom Themes:${RESET}"
-    for i in "${!custom_list[@]}"; do echo "  $((i+1+offset)). ${custom_list[i]}"; done
-
-    total=$((offset + ${#custom_list[@]}))
-    echo -ne "\n${INPUT}Enter the theme number (1–$total): ${RESET}"
+    echo -ne "\n${INPUT}[?] Choose a theme number to apply (1–${#all_themes[@]}): ${RESET}"
     read -r choice
 
-    if [[ ! "$choice" =~ ^[0-9]+$ ]] || ((choice < 1 || choice > total)); then
-        echo -e "${ERROR}[!] Invalid selection.${RESET}"; exit 1
+    if ! [[ "$choice" =~ ^[0-9]+$ ]] || ((choice < 1 || choice > ${#all_themes[@]})); then
+        echo -e "${ERROR}[!] Invalid selection.${RESET}"
+        return
     fi
 
-    selected_theme="${themes[$((choice-1))]}"
+    selected_theme="${all_themes[$((choice - 1))]}"
     sudo sed -i "s|^$PREFIX.*|${PREFIX}${selected_theme}.conf|" "$META"
     echo -e "${SUCCESS}[✓] Theme applied: $selected_theme${RESET}"
 }
