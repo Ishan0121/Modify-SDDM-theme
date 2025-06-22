@@ -205,7 +205,7 @@ while true; do
     echo -e "${INFO} 2.${RESET} ${PROMPT}Full installation, (clone → install)${RESET}"
     echo -e "${INFO} 3.${RESET} ${PROMPT}Install dependencies${RESET}"
     echo -e "${INFO} 4.${RESET} ${PROMPT}Preview a theme before applying${RESET}"
-    echo -e "${INFO} 5.${RESET} ${PROMPT}Select a theme${RESET}"
+    echo -e "${INFO} 5.${RESET} ${PROMPT}Apply a theme${RESET}"
     echo -e "${INFO} 6.${RESET} ${PROMPT}Create a new theme${RESET}"
     echo -e "${INFO} 7.${RESET} ${PROMPT}Preview the current theme${RESET}"
     echo -e "${INFO} 8.${RESET} ${PROMPT}Enable SDDM${RESET}"
