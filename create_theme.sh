@@ -96,7 +96,7 @@ while true; do
             FONT_FILE="Open Sans"
             break
         else
-            FONT_FILE="${fonts[$((FNUM-1))]}"
+            FONT_FILE="${fonts[$((FNUM-2))]}"
         fi
         break
     else
