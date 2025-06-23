@@ -274,8 +274,8 @@ Column {
             
             height: parent.height
             width: selectUser.height * 1
-            anchors.left: parent.left
-            anchors.leftMargin: selectUser.height * 0
+            anchors.right: parent.right
+            anchors.rightMargin: selectUser.height * 0
             anchors.verticalCenter: parent.verticalCenter
             z: 2
             
