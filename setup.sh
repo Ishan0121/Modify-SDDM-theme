@@ -191,6 +191,18 @@ preview_themes() {
     fi
 }
 
+preview_warning() {
+    echo -e "${WARNING}⚠️  FULLSCREEN PREVIEW WARNING:${RESET}"
+    echo -e "${INFO}•${RESET} ${WARNING}Preview will launch in fullscreen mode with no close button or window controls.${RESET}"
+    echo -e "${INFO}•${RESET} ${WARNING}You MUST know how to close a window using your keyboard.${RESET}"
+    echo -e "${INFO}    Recommended: ${PROMPT}ALT+F4${RESET}, ${PROMPT}CTRL+W${RESET}, or ${PROMPT}kill from another terminal${RESET}"
+    echo
+    echo -e "${INFO}•${RESET} ${WARNING}Some video wallpapers may appear distorted (e.g., green lines) in preview.${RESET}"
+    echo -e "${INFO}    This is harmless — it usually works fine on actual lock screen.${RESET}"
+    echo
+}
+
+
 enable_sddm() {
     echo -e "${HEADER}[>] Setting SDDM as default display manager...${RESET}"
     sudo systemctl disable display-manager.service
@@ -222,10 +234,10 @@ while true; do
         1) install_dependencies; git_clone; copy_files; select_theme; enable_sddm; exit ;;
         2) install_dependencies; git_clone; copy_files; exit ;;
         3) install_dependencies; exit ;;
-        4) preview_themes; exit ;;
+        4) preview_warning; preview_themes; exit ;;
         5) select_theme; exit ;;
         6) create_theme; exit ;;
-        7) sddm-greeter-qt6 --test-mode --theme ${THEME_DIR}/; exit ;;
+        7) preview_warning; sddm-greeter-qt6 --test-mode --theme ${THEME_DIR}/; exit ;;
         8) enable_sddm; exit ;;
         0) echo -e "${INFO}Exiting...${RESET}"; exit ;;
         *) echo -e "${ERROR}[!] Invalid option.${RESET}" ;;
