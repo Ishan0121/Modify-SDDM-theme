@@ -179,7 +179,18 @@ preview_themes() {
             theme="${themes[$((selection - 1))]}"
             echo -e "${INFO}[~] Previewing '${theme}'...${RESET}"
             sudo sed -i "s|^${config_prefix}.*|${config_prefix}${theme}.conf|" "$metadata_file"
-            sddm-greeter-qt6 --test-mode --theme "$theme_dir"
+            selected_conf="${theme_dir}/Themes/${theme}.conf"
+            if ! grep -q "^DebugEscape=" "$selected_conf"; then
+                echo "DebugEscape=true" | sudo tee -a "$selected_conf" >/dev/null
+            else
+                sudo sed -i "s/^DebugEscape=.*/DebugEscape=true/" "$selected_conf"
+            fi
+
+            timed_preview "$theme_dir"
+
+            # Clean up DebugEscape afterward
+            sudo sed -i "/^DebugEscape=/d" "$selected_conf"
+
         else
             echo -e "${ERROR}[!] Invalid selection. Try again.${RESET}"
         fi
@@ -193,15 +204,38 @@ preview_themes() {
 
 preview_warning() {
     echo -e "${WARNING}⚠️  FULLSCREEN PREVIEW WARNING:${RESET}"
-    echo -e "${INFO}•${RESET} ${WARNING}Preview will launch in fullscreen mode with no close button or window controls.${RESET}"
-    echo -e "${INFO}•${RESET} ${WARNING}You MUST know how to close a window using your keyboard.${RESET}"
+    echo -e "${INFO}•${RESET} ${WARNING}Preview will launch in fullscreen mode with no close button, window controls might work.${RESET}"
+    echo -e "${INFO}•${RESET} ${SUCCESS}Preview will close automatically after 10 seconds.${RESET}"
+    echo -e "${INFO}•${RESET} ${WARNING}If not, you MUST know how to close a window using your keyboard.${RESET}"
     echo -e "${INFO}    Recommended: ${PROMPT}ALT+F4${RESET}, ${PROMPT}CTRL+W${RESET}, or ${PROMPT}kill from another terminal${RESET}"
     echo
-    echo -e "${INFO}•${RESET} ${WARNING}Some video wallpapers may appear distorted (e.g., green lines) in preview.${RESET}"
-    echo -e "${INFO}    This is harmless — it usually works fine on actual lock screen.${RESET}"
+    echo -e "${WARNING}⚠️  PREVIEW LIMITATION NOTICE:${RESET}"
+    echo -e "${INFO}•${RESET} ${WARNING}Some video wallpapers may appear distorted (e.g., green/red glitch lines) during preview.${RESET}"
+    echo -e "${INFO}    But don’t worry — they usually render fine on the actual lock screen.${RESET}"
     echo
+
+    # 🔐 Ask for confirmation
+    echo -ne "${INPUT}[?] Do you still want to proceed with preview? (y/n): ${RESET}"
+    read -r confirm_preview
+    if ! [[ "$confirm_preview" =~ ^[Yy]$ ]]; then
+        echo -e "${INFO}[~] Preview cancelled.${RESET}"
+        return 1
+    fi
 }
 
+timed_preview(){
+    local theme_path="$1"
+    sddm-greeter-qt6 --test-mode --theme "$theme_path" &
+    pid=$!
+    (
+        sleep 10
+        if kill -0 "$pid" 2>/dev/null; then
+            echo -e "${WARNING}⚠️ Timeout reached. Killing preview (PID $pid)...${RESET}"
+            kill "$pid"
+        fi
+    ) &
+    wait $pid;
+}
 
 enable_sddm() {
     echo -e "${HEADER}[>] Setting SDDM as default display manager...${RESET}"
@@ -234,12 +268,20 @@ while true; do
         1) install_dependencies; git_clone; copy_files; select_theme; enable_sddm; exit ;;
         2) install_dependencies; git_clone; copy_files; exit ;;
         3) install_dependencies; exit ;;
-        4) preview_warning; preview_themes; exit ;;
+        4) if preview_warning; then preview_themes; fi; exit ;;
         5) select_theme; exit ;;
         6) create_theme; exit ;;
-        7) preview_warning; sddm-greeter-qt6 --test-mode --theme ${THEME_DIR}/; exit ;;
+        7) if preview_warning; then 
+            selected_conf="${THEME_DIR}/$(grep 'ConfigFile=' "$THEME_DIR/metadata.desktop" | cut -d= -f2)"
+            echo "DebugEscape=true" | sudo tee -a "$selected_conf" >/dev/null
+            timed_preview "$THEME_DIR"
+            sudo sed -i "/^DebugEscape=/d" "$selected_conf"
+            fi;exit;;
         8) enable_sddm; exit ;;
         0) echo -e "${INFO}Exiting...${RESET}"; exit ;;
         *) echo -e "${ERROR}[!] Invalid option.${RESET}" ;;
     esac
 done
+
+
+    
